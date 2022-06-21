@@ -53,7 +53,8 @@ namespace ScrCpyGUI
                         Product = adbDevice.Product,
                         Model = adbDevice.Model,
                         Emulator = adbDevice.IsEmulator ? "Yes" : "No",
-                        ScrCpy = "View"
+                        ScrCpy = "View",
+                        Apk = "Install Apk"
                     });
                 }
                 dataGridView1.DataSource = devices1;
@@ -64,6 +65,13 @@ namespace ScrCpyGUI
                     Text = "ScrCpy",
                     HeaderText = "ScrCpy",
                     DataPropertyName = "ScrCpy",
+                });
+                dataGridView1.Columns.Remove("Apk");
+                dataGridView1.Columns.Add(new DataGridViewButtonColumn()
+                {
+                    Text = "Install Apk",
+                    HeaderText = "Install Apk",
+                    DataPropertyName = "Apk",
                 });
                 dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 /*dataGridView1.Columns.Add(new DataGridViewButtonColumn()
@@ -100,20 +108,12 @@ namespace ScrCpyGUI
                     Product = adbDevice.Product,
                     Model = adbDevice.Model,
                     Emulator = adbDevice.IsEmulator ? "Yes" : "No",
-                    ScrCpy = "View"
+                    ScrCpy = "View",
+                    Apk="Install Apk"
                 });
             }
             try
             {
-                /*dataGridView1.DataSource = devices1;
-
-                dataGridView1.Columns.RemoveAt(5);
-                dataGridView1.Columns.Add(new DataGridViewButtonColumn()
-                {
-                    Text = "ScrCpy",
-                    HeaderText = "ScrCpy",
-                    DataPropertyName = "ScrCpy"
-                });*/
                 CurrencyManager cm = (CurrencyManager)this.dataGridView1.BindingContext[devices1];
                 if (cm != null)
                 {
@@ -141,7 +141,22 @@ namespace ScrCpyGUI
             if (e.ColumnIndex == 6)
             {
                 // Screen capture
-                sdk.Adb.ScreenCapture(new FileInfo("screen.png"), devices1[e.RowIndex].Serial);
+                // sdk.Adb.ScreenCapture(new FileInfo("screen.png"), devices1[e.RowIndex].Serial);
+                OpenFileDialog fdlg = new OpenFileDialog();
+                fdlg.Title = "Select Apk";
+                fdlg.InitialDirectory = @"c:\";
+                //fdlg.Filter = "All files (*.*)|*.*|All files (*.*)|*.*";
+                fdlg.Filter = "Apk files (*.apk)|*.apk";
+                fdlg.RestoreDirectory = true;
+                if (fdlg.ShowDialog() == DialogResult.OK)
+                {
+                    //sdk.Adb.Install(new FileInfo(fdlg.FileName), devices1[e.RowIndex].Serial);
+                    Process process = new Process();
+                    process.StartInfo.FileName = textBox1.Text + @"\platform-tools\adb.exe";
+                    process.StartInfo.Arguments = $" -s {devices1[e.RowIndex].Serial} install {fdlg.FileName}";
+                    process.StartInfo.CreateNoWindow = true;
+                    process.Start();
+                }
             }
         }
 
@@ -191,5 +206,6 @@ namespace ScrCpyGUI
         public string Model { get; set; }
         public string Device { get; set; }
         public string ScrCpy { get; set; }
+        public string Apk { get; set; }
     }
 }
