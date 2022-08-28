@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using static AndroidSdk.Adb;
 
@@ -54,7 +55,8 @@ namespace ScrCpyGUI
                         Model = adbDevice.Model,
                         Emulator = adbDevice.IsEmulator ? "Yes" : "No",
                         ScrCpy = "View",
-                        Apk = "Install Apk"
+                        Apk = "Select",
+                        Screenshot = "Take"
                     });
                 }
                 dataGridView1.DataSource = devices1;
@@ -69,9 +71,16 @@ namespace ScrCpyGUI
                 dataGridView1.Columns.Remove("Apk");
                 dataGridView1.Columns.Add(new DataGridViewButtonColumn()
                 {
-                    Text = "Install Apk",
+                    Text = "Select",
                     HeaderText = "Install Apk",
                     DataPropertyName = "Apk",
+                });
+                dataGridView1.Columns.Remove("Screenshot");
+                dataGridView1.Columns.Add(new DataGridViewButtonColumn()
+                {
+                    Text = "Take",
+                    HeaderText = "Screenshot",
+                    DataPropertyName = "Screenshot",
                 });
                 dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 /*dataGridView1.Columns.Add(new DataGridViewButtonColumn()
@@ -109,7 +118,8 @@ namespace ScrCpyGUI
                     Model = adbDevice.Model,
                     Emulator = adbDevice.IsEmulator ? "Yes" : "No",
                     ScrCpy = "View",
-                    Apk="Install Apk"
+                    Apk = "Select",
+                    Screenshot = "Take",
                 });
             }
             try
@@ -132,11 +142,15 @@ namespace ScrCpyGUI
         {
             if (e.ColumnIndex == 5)
             {
+                
                 Process process = new Process();
                 process.StartInfo.FileName = textBox2.Text + @"\scrcpy.exe";
                 process.StartInfo.Arguments = " -s " + devices1[e.RowIndex].Serial;
                 process.StartInfo.CreateNoWindow = true;
                 process.Start();
+                /*SetParent(process.MainWindowHandle, new ScrcpyExeForm().Handle);
+                 */
+                //new ScrcpyExeForm(process, textBox2.Text + @"\scrcpy.exe"+ " -s " + devices1[e.RowIndex].Serial).ShowDialog();
             }
             if (e.ColumnIndex == 6)
             {
@@ -157,6 +171,17 @@ namespace ScrCpyGUI
                     process.StartInfo.CreateNoWindow = true;
                     process.Start();
                 }
+            }
+            if (e.ColumnIndex == 7)
+            {
+                Process process = new Process();
+                /*process.StartInfo.FileName = textBox1.Text + @"\platform-tools\adb.exe";
+                process.StartInfo.Arguments = $" -s {devices1[e.RowIndex].Serial} exec-out screencap -p > \"E:\\file_{DateTime.Now:yyyyMMdd_HHmmss}.png\"";*/
+                process.StartInfo.FileName = @$"tools\screencapture.bat";
+                process.StartInfo.Arguments = $"{textBox1.Text + @"\platform-tools\adb.exe"} {devices1[e.RowIndex].Serial}";
+                process.StartInfo.CreateNoWindow = true;
+                process.Start();
+                //sdk.Adb.ScreenCapture(new FileInfo($@"C:\Users\Mustaq\file_{DateTime.Now:yyyyMMdd_HHmmss}.png"), devices1[e.RowIndex].Serial);
             }
         }
 
@@ -196,6 +221,14 @@ namespace ScrCpyGUI
                 RefreshClick(sender, e);
             }
         }
+
+        [DllImport("user32.dll")]
+        static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+
+        private void textBox1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 
     public class AdbDevices
@@ -207,5 +240,6 @@ namespace ScrCpyGUI
         public string Device { get; set; }
         public string ScrCpy { get; set; }
         public string Apk { get; set; }
+        public string Screenshot { get; set; }
     }
 }
